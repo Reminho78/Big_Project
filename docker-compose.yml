@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: my_app_db
+    environment:
+      POSTGRES_USER: ${DB_USER}         # Utilisation des variables d'environnement
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d  # Script d'initialisation
+      - postgres_data:/var/lib/postgresql/data  # Volume pour persister les données PostgreSQL
+      - ./certs:/var/lib/postgresql/certs       # Volume pour les certificats SSL
+    ports:
+      - "5432:5432"  # Expose PostgreSQL sur le port 5432
+    networks:
+      - app_network  # Utilise le réseau interne Docker
+    expose:
+      - 5432  # Expose uniquement au réseau Docker
+    restart: unless-stopped  # Redémarre PostgreSQL automatiquement en cas de crash
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    container_name: django_app
+    environment:
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - SSLMODE=require  # Utilise SSL pour la connexion
+    volumes:
+      - ./backend:/app
+    networks:
+      - app_network  # Connecte au même réseau que PostgreSQL
+    depends_on:
+      - db  # Démarre seulement après PostgreSQL
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: react_frontend
+    volumes:
+      - ./frontend:/app
+    networks:
+      - app_network  # Connecte également au réseau interne
+    ports:
+      - "3000:3000"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_container
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL} # Définit l'email d'administration
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}  # Définit le mot de passe
+      PGADMIN_MAIL_PASSWORD: ${PGADMIN_MAIL_PASSWORD}
+    ports:
+      - "8080:80"  # Expose l'interface pgAdmin sur le port 8080
+    networks:
+      - app_network
+    depends_on:
+      - db  # Assure que la base de données est démarrée avant pgAdmin4
+    volumes:
+      - ./pgadmin-data:/var/lib/pgadmin  # Pour persister les données pgAdmin
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

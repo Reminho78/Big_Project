@@ -6,8 +6,8 @@ DATABASES = {
         'NAME': 'DB_USER',
         'USER': 'DB_USER',
         'PASSWORD': 'DB_PASSWORD',
-        'HOST': 'localhost',
-        'DB_PORT': '5432',
+        'HOST': 'db',
+        'PORT': '5432',
     }
 }
 

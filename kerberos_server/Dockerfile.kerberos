@@ -1,0 +1,14 @@
+# Utiliser Debian comme image de base
+FROM debian:latest
+
+# Installer Kerberos KDC et les outils d'administration
+RUN apt-get update && apt-get install -y krb5-kdc krb5-admin-server krb5-config
+
+# Définir le fichier de configuration Kerberos
+COPY krb5.conf /etc/krb5.conf
+
+# Exposer le port Kerberos KDC (88) et l'admin (749)
+EXPOSE 88 749
+
+# Démarrer les services KDC et admin_server
+CMD ["/usr/sbin/krb5kdc", "-n"]

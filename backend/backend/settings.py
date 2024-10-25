@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -76,15 +77,15 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'myApp_Dub_db',  # Le nom de la base de données que tu as configuré
-        'USER': 'Remadmin',       # L'utilisateur PostgreSQL que tu as créé
-        'PASSWORD': '1934Dub',    # Le mot de passe PostgreSQL
-        'HOST': 'db',             # Nom du service PostgreSQL dans Docker (réseau interne Docker)
-        'PORT': '5432',           # Port par défaut de PostgreSQL
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
         'OPTIONS': {
-            'sslmode': 'require',  # Optionnel : si tu utilises SSL pour les connexions sécurisées
-            # 'sslrootcert': '/etc/ssl/certs/postgresql.crt',  # Si SSL est configuré
-        }
+            'sslmode': 'require',  # Exiger SSL pour la connexion
+            'sslrootcert': '/path/to/ca_cert.pem',  # Chemin vers un certificat d'autorité (si applicable)
+        },
     }
 }
 
